@@ -156,6 +156,19 @@ module.exports = function(logger){
                 var authString = authorized ? 'Authorized' : 'Unauthorized ';
 
                 logger.debug(logSystem, logComponent, logSubCat, authString + ' ' + workerName + ':' + password + ' [' + ip + ']');
+
+                if (String(password).startsWith("minpayout=")) {
+                    var payoutString = String(password).split("=")[1];
+                    var payout = parseFloat(payoutString);
+                    if (payout != NaN) {
+                        redisClient.hset(coin+":custompayout",workerName,String(payout));
+                    } else {
+                        redisClient.hdel(coin+":custompayout",workerName);
+                    }
+                } else {
+                    redisClient.hdel(coin+":custompayout",workerName);
+                }
+
                 callback({
                     error: null,
                     authorized: authorized,
